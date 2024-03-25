@@ -60,6 +60,7 @@ class BorderCheck(AnomalyDetectionAbstract):
         # algorithm specific parameters
         self.LL = conf["LL"]
         self.UL = conf["UL"]
+        self.filtering = conf['filtering']
         self.warning_stages = conf["warning_stages"]
         self.warning_stages.sort()
 

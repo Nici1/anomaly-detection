@@ -1,0 +1,29 @@
+{
+    "anomaly_detection_alg": ["EMA()"],
+   
+    "file_name": "data/cleaned/data1.csv",
+
+    "anomaly_detection_conf": [
+        {
+            "filtering": "None",
+            "train_data": "data/cleaned/data1.csv",
+            "input_vector_size": 1,
+            "LL":-0.1,
+            "UL":1.1,
+            "warning_stages":[0, 0.5, 0.7, 0.9],
+            "N":10,
+        
+            "output": ["TerminalOutput()"],
+            "output_conf": [{}],
+            "visualization": "StatusPointsVisualization()",
+            "visualization_conf": {
+                "num_of_bins": 60,
+                "range": [9, 20],
+                "num_of_points": 50,
+                "num_of_lines": 1,
+                "linestyles": ["wo"],
+                "demo_pause": 1.0
+            }
+        }
+    ]
+}
