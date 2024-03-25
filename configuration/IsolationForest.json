@@ -1,0 +1,29 @@
+{
+    "anomaly_detection_alg": ["IsolationForest()"],
+   
+    "file_name": "data/cleaned/data1.csv",
+
+    "anomaly_detection_conf": [
+        {
+            "filtering": "None",
+            "train_data": "data/cleaned/data1.csv",
+            "input_vector_size": 1,
+            "max_samples": 100,
+            "contamination":0.05,
+            "max_features":1,
+            "model_name":"sensor-cleaning-data1-test",
+        
+            "output": ["TerminalOutput()"],
+            "output_conf": [{}],
+            "visualization": "StatusPointsVisualization()",
+            "visualization_conf": {
+                "num_of_bins": 60,
+                "range": [9, 20],
+                "num_of_points": 50,
+                "num_of_lines": 1,
+                "linestyles": ["wo"],
+                "demo_pause": 1.0
+            }
+        }
+    ]
+}

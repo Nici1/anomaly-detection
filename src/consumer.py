@@ -13,7 +13,7 @@ from algorithms.welford import Welford
 from algorithms.ema import EMA
 from algorithms.filtering import Filtering
 from algorithms.isolation_forest import IsolationForest
-# from algorithms.gan import GAN
+from algorithms.gan import GAN
 from algorithms.pca import PCA
 from algorithms.hampel import Hampel
 from algorithms.linear_fit import LinearFit
@@ -21,6 +21,8 @@ from algorithms.combination import Combination
 from algorithms.trend_classification import Trend_Classification
 from algorithms.cumulative import Cumulative
 from algorithms.macd import MACD
+from algorithms.Kmeans import Kmeans
+from algorithms.DBscan import DBscan
 from algorithms.clustering import Clustering
 from algorithms.percentile import Percentile
 

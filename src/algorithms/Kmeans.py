@@ -1,15 +1,16 @@
-from typing import Any, Dict, List
-import numpy as np
+from typing import Any, Dict
 import sys
-import json
-import pickle
+from typing import Any, Dict, List, Tuple, Union
 from pandas.core.frame import DataFrame
-import sklearn.ensemble
 import pandas as pd
 from ast import literal_eval
+from sklearn.cluster import KMeans
+import json
+import numpy as np
+from scipy.spatial import distance
+
 
 sys.path.insert(0, "./src")
-sys.path.insert(1, "C:/Users/Matic/SIHT/anomaly_det/anomalyDetection/")
 from algorithms.anomaly_detection import AnomalyDetectionAbstract
 from output import OutputAbstract, TerminalOutput, FileOutput, KafkaOutput
 from visualization import (
@@ -21,24 +22,22 @@ from visualization import (
 from normalization import NormalizationAbstract, LastNAverage, PeriodicLastNAverage
 
 
-class IsolationForest(AnomalyDetectionAbstract):
-    name: str = "Isolation forest"
+class Kmeans(AnomalyDetectionAbstract):
+    name: str = "Kmeans"
 
-    # method specific
-    N: int
-    max_samples: int
-    max_features: int
-    contamination: float
-    model_name: str
-    memory: List[float]
-    isolation_score: float
-    warning_stages: List[float]
+    # methode specific
+
+    n_cluster: int
+    treshold: float
+    cluster_centers = []
 
     # retrain information
     samples_from_retrain: int
-    retrain_interval: int
-    samples_for_retrain: int
-    retrain_file: str
+    retrain_interval: int  # An integer representing the number of samples recieved by the anomaly detection component that trigger model retraining.
+    samples_for_retrain: int  #  An integer representing the number of most recent samples that are used to retrain the model.
+    retrain_file: (
+        str  # Path and file name of the file in which retrain data will be stored
+    )
     trained: bool
     memory_dataframe: DataFrame
 
@@ -59,12 +58,8 @@ class IsolationForest(AnomalyDetectionAbstract):
             algorithm_indx=algorithm_indx,
         )
 
-        # Train configuration
-        self.max_features = conf["max_features"]
-        self.model_name = conf["model_name"]
-        self.max_samples = conf["max_samples"]
-        self.contamination = conf["contamination"]
-        self.input_vector_size = conf["input_vector_size"]
+        self.n_clusters = conf["n_clusters"]
+        self.treshold = conf["treshold"]
 
         # Retrain configuration
         if "retrain_interval" in conf:
@@ -100,16 +95,10 @@ class IsolationForest(AnomalyDetectionAbstract):
 
         # Initialize model
         self.trained = False
-        if "load_model_from" in conf:
-            self.model = self.load_model(conf["load_model_from"])
-        elif "train_data" in conf:
+        if "train_data" in conf:
             self.train_model(conf["train_data"])
         elif self.retrain_interval is not None:
-            self.model = sklearn.ensemble.IsolationForest(
-                max_samples=self.max_samples,
-                max_features=self.max_features,
-                contamination=self.contamination,
-            )
+            self.model = KMeans(n_clusters=self.n_cluster)
         else:
             raise Exception(
                 "The configuration must specify either \
@@ -117,27 +106,31 @@ class IsolationForest(AnomalyDetectionAbstract):
             )
 
     def message_insert(self, message_value: Dict[Any, Any]) -> Any:
+
+        # print(type(message_value))
+        # print("Message ", message_value)
+        # print("Vector ", message_value["ftr_vector"])
+        # message_value = literal_eval(message_value)[0]
+        # print(literal_eval(message_value["ftr_vector"][0]))
+
+        # If the feature vector is multidimensional then we would need to convert the string of the feature array into an actual array, otherwise inputs of
+        # dimension are written and sent as non string values
+        if self.input_vector_size > 1:
+            message_value["ftr_vector"] = literal_eval(message_value["ftr_vector"][0])
         super().message_insert(message_value)
 
+        # print("Feature vector: ", message_value["ftr_vector"])
         # Check feature vector
         if not self.check_ftr_vector(message_value=message_value):
             status = self.UNDEFINED
             status_code = self.UNDEFIEND_CODE
-
-            # if the names in the msg are wrong, there would be an error here
-            # self.normalization_output_visualization(status=status,
-            #                                    status_code=status_code,
-            #                                    value=message_value["ftr_vector"],
-            #                                    timestamp=message_value["timestamp"])
 
             # Remenber status for unittests
             self.status = status
             self.status_code = status_code
             return status, status_code
 
-        # value = message_value["ftr_vector"]
-        # value = value[0]
-
+        # Filter ftr_vector by use_cols if neccessery
         if self.use_cols is not None:
             value = []
             for el in range(len(message_value["ftr_vector"])):
@@ -145,10 +138,10 @@ class IsolationForest(AnomalyDetectionAbstract):
                     value.append(message_value["ftr_vector"][el])
         else:
             value = message_value["ftr_vector"]
-
         timestamp = message_value["timestamp"]
+
+        # Feature construction
         feature_vector = super().feature_construction(value=value, timestamp=timestamp)
-        # print("feature vector:", feature_vector)
 
         if not feature_vector or not self.trained:
             # If this happens the memory does not contain enough samples to
@@ -156,22 +149,28 @@ class IsolationForest(AnomalyDetectionAbstract):
             status = self.UNDEFINED
             status_code = self.UNDEFIEND_CODE
         else:
-            feature_vector = np.array(feature_vector)
-            # Model prediction
-            isolation_score = self.model.predict(feature_vector.reshape(1, -1))
-            if isolation_score == 1:
-                status = self.OK
-                status_code = self.OK_CODE
-            elif isolation_score == -1:
+            # Check if sample is at least for treshold away from all core
+            # samples
+            anomalous = True
+            for cluster_center in self.cluster_centers:
+                euclidean_dist = distance.euclidean(cluster_center, feature_vector)
+                # print(euclidean_dist)
+                if euclidean_dist < self.treshold:
+                    anomalous = False
+                    break
+
+            if anomalous:
                 status = "Error: outlier detected"
                 status_code = -1
             else:
-                status = self.UNDEFINED
-                status_code = self.UNDEFIEND_CODE
+                status = self.OK
+                status_code = self.OK_CODE
 
         self.normalization_output_visualization(
             status=status, status_code=status_code, value=value, timestamp=timestamp
         )
+
+        # Remember for unittests
         self.status = status
         self.status_code = status_code
 
@@ -199,16 +198,8 @@ class IsolationForest(AnomalyDetectionAbstract):
                 self.samples_from_retrain = 0
                 self.train_model(train_dataframe=self.memory_dataframe)
                 self.retrain_counter += 1
+
         return status_code
-
-    def save_model(self, filename: str) -> None:
-        with open("models/" + filename, "wb") as f:
-            pickle.dump(self.model, f)
-
-    def load_model(self, filename: str) -> None:
-        with open(filename, "rb") as f:
-            clf = pickle.load(f)
-        return clf
 
     def train_model(
         self, train_file: str = None, train_dataframe: DataFrame = None
@@ -240,12 +231,6 @@ class IsolationForest(AnomalyDetectionAbstract):
                 json.dump(whole_conf, conf)
 
         elif train_file is not None:
-            # Load data from location stored in "filename" (ussually for
-            # initial model training)
-
-            # Changed 25.3. by Gal
-            # df = pd.read_csv(train_file, skiprows=1, delimiter = ",")
-
             # Read csv and eval ftr_vector strings
             df = pd.read_csv(
                 train_file,
@@ -261,28 +246,42 @@ class IsolationForest(AnomalyDetectionAbstract):
             raise Exception("train_file or train_dataframe must be specified.")
 
         # Extract list of ftr_vectors and list of timestamps
-        ftr_vector_list = df["ftr_vector"].values.tolist()
-        timestamp_list = df["timestamp"].values.tolist()
+        ftr_vector_list = df["ftr_vector"].tolist()
+        timestamp_list = df["timestamp"].tolist()
+        # print(ftr_vector_list)
         # Create a new  dataframe with features as columns
-        df = pd.DataFrame(ftr_vector_list)
+        # print("Feature vector list: ", ftr_vector_list)
+
+        # If the feature vector is single dimensional, for some reason pd.DataFrame.from_records does not work hence the following:
+        if self.input_vector_size > 1:
+            df = pd.DataFrame.from_records(ftr_vector_list)
+        else:
+            df = pd.DataFrame(ftr_vector_list)
+
         df.insert(loc=0, column="timestamp", value=timestamp_list)
+        # print(df)
+
         # Transfer to numpy and extract data and timestamps
         df = df.to_numpy()
+
         timestamps = np.array(df[:, 0])
+
         data = np.array(df[:, 1 : (1 + self.input_vector_size)])
 
         # Requires special feature construction so it does not mess with the
         # feature-construction memory
+
         features = self.training_feature_construction(data=data, timestamps=timestamps)
-
-        # Fit IsolationForest model to data (if there was enoug samples to
+        # print(features)
+        # Fit Kmeans model to data (if there was enoug samples to
         # construct at leat one feature)
-        if len(features) > 0:
-            self.model = sklearn.ensemble.IsolationForest(
-                max_samples=self.max_samples,
-                max_features=self.max_features,
-                contamination=self.contamination,
-            ).fit(features)
 
-            self.save_model(self.model_name)
+        if len(features) > 0:
+            # train model
+            self.model = KMeans(n_clusters=self.n_clusters).fit(features)
+
+            for i in self.model.cluster_centers_:
+                self.cluster_centers.append(i)
+
+            # print(self.model.cluster_centers_)
             self.trained = True
