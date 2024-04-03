@@ -21,9 +21,9 @@ from algorithms.combination import Combination
 from algorithms.trend_classification import Trend_Classification
 from algorithms.cumulative import Cumulative
 from algorithms.macd import MACD
-from algorithms.Kmeans import Kmeans
-from algorithms.DBscan import DBscan
-from algorithms.LSTM import LSTM
+from algorithms.kmeans import Kmeans
+from algorithms.dbscan import DBscan
+from algorithms.lstm import LSTM
 from algorithms.clustering import Clustering
 from algorithms.percentile import Percentile
 
