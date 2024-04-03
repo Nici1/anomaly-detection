@@ -134,6 +134,8 @@ class BorderCheck(AnomalyDetectionAbstract):
             else:
                 for stage in range(len(self.warning_stages)):
                     if (value_normalized > self.warning_stages[stage]):
+
+                        #print(value_normalized, self.warning_stages[stage])
                         status = "Warning" + str(stage) + \
                             ": measurement close to upper limit."
                         status_code = self.WARNING_CODE
@@ -156,4 +158,4 @@ class BorderCheck(AnomalyDetectionAbstract):
                                                     timestamp=timestamp)
 
         # return status and status code
-        return status, status_code
+        return status_code

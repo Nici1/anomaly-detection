@@ -1,28 +1,18 @@
 {
     "anomaly_detection_alg": ["BorderCheck()"],
    
-    "file_name": "data/cleaned/data1.csv",
+    "file_name": "data/testing.csv",
 
     "anomaly_detection_conf": [
         {
             "filtering": "None",
-            "train_data": "data/cleaned/data1.csv",
+            "train_data": "data/testing.csv",
             "input_vector_size": 1,
-            "LL":0.0,
-            "UL":0.1,
-            "warning_stages":[0.01, 0.07],
-        
-            "output": ["TerminalOutput()"],
-            "output_conf": [{}],
-            "visualization": "StatusPointsVisualization()",
-            "visualization_conf": {
-                "num_of_bins": 60,
-                "range": [9, 20],
-                "num_of_points": 50,
-                "num_of_lines": 1,
-                "linestyles": ["wo"],
-                "demo_pause": 1.0
-            }
+            "warning_stages": [0.7, 0.9],
+            "UL": 0.5,
+            "LL": -0.5,
+            "output": [],
+            "output_conf": [{}]
         }
     ]
 }

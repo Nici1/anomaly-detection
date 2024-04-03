@@ -23,6 +23,7 @@ from algorithms.cumulative import Cumulative
 from algorithms.macd import MACD
 from algorithms.Kmeans import Kmeans
 from algorithms.DBscan import DBscan
+from algorithms.LSTM import LSTM
 from algorithms.clustering import Clustering
 from algorithms.percentile import Percentile
 

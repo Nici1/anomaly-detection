@@ -1,18 +1,18 @@
 {
-    "file_name": "data/training/braila_pressure5770.csv",
+    "file_name": "data/cleaned/data1.csv",
     
     "anomaly_detection_alg": ["LSTM()"],
     "anomaly_detection_conf": [
         {   
             "filtering":"None",
-            "train_data": "data/training/braila_pressure5770.csv",
+            "train_data": "data/cleaned/data1.csv",
             
-            "model_name": "LSTM_Braila_pressure_5770",
-            "N_shifts": 9,
+            "model_name": "LSTM_df1",
+            "N_shifts": 0,
             "N_latent": 3,
             "K": 8,
             "len_window": 500,
-            "input_vector_size":10,
+            "input_vector_size":1,
             
             
             "retrain_interval": 2000,

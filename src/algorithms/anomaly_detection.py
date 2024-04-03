@@ -99,6 +99,7 @@ class AnomalyDetectionAbstract(ABC):
         self.configuration_location = configuration_location
 
         self.conf = conf
+     
 
         # If algorithm is initialized from consumer kafka it has this
         # specified
@@ -106,6 +107,7 @@ class AnomalyDetectionAbstract(ABC):
 
         # FEATURE CONSTRUCTION CONFIGURATION
         self.input_vector_size = conf["input_vector_size"]
+        
 
         if "braila_fall_feature" in conf:
             self.braila_fall = conf["braila_fall_feature"]
@@ -494,7 +496,7 @@ class AnomalyDetectionAbstract(ABC):
                 else:
                     shift += 1
                     try:
-                        print(shifts)
+                        #print(shifts)
                         shifts.append(np.mean(buff))
                     except:
                         return []
