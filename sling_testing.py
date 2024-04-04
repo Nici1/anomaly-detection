@@ -6,8 +6,8 @@ import numpy as np
 from typing import Any, Dict, List, Tuple, Union
 from sklearn import metrics
 
-from src.algorithms.Kmeans import Kmeans
-from src.algorithms.DBscan import DBscan
+from src.algorithms.kmeans import Kmeans
+from src.algorithms.dbscan import DBscan
 from src.algorithms.isolation_forest import IsolationForest
 from src.algorithms.gan import GAN
 from src.algorithms.border_check import BorderCheck
@@ -175,106 +175,111 @@ class Estimator(BaseEstimator):
 def perform_grid_search(params):
     
 
-
+    i = params["i"]
   
 
-  
 
-    for i in range(1, 3):
-
-        df_validation = pd.read_csv(f"data/validation/ads-{i}.csv")
-        X_validation = df_validation[["timestamp", "ftr_vector"]]
-        y_validation = df_validation[["label"]]
+    df_validation = pd.read_csv(f"data/validation/ads-{i}.csv")
+    X_validation = df_validation[["timestamp", "ftr_vector"]]
+    y_validation = df_validation[["label"]]
 
 
-        df_test = pd.read_csv(f"data/test/ads-{i}.csv")
-        X_test = df_validation[["timestamp", "ftr_vector"]]
-        y_test = df_validation[["label"]]
+    df_test = pd.read_csv(f"data/test/ads-{i}.csv")
+    X_test = df_validation[["timestamp", "ftr_vector"]]
+    y_test = df_validation[["label"]]
 
 
-        test_params = {
-            
-            # Kmeans
-            "n_clusters": [2],
-            "treshold": [0.3],
-            # DBscan
-            "eps": [params["eps"]],
-            "db_treshold": [params["db_treshold"]],
-            "min_samples": [params["min_samples"]],
-            # IsolationForest
-            "max_samples": [10],
-            "max_features": [1],
-            "contamination": [0.01],
-            # GAN
-            "N_latent": [3],
-            "K": [8],
-            "len_window": [500],
-            # Border Check
-            "UL": [0.5],
-            "LL":  [-0.5],
-            "alg":["DBscan"],
-            "train_data": [f"data/train/ads-{i}.csv"],
-    
-        }
-
-        #print(test_params)
-
-        estimator = Estimator()
-
-        clf = GridSearchCV(
-            estimator,
-            param_grid=test_params,
-            scoring="precision",
-            
-            cv=TimeSeriesSplit(n_splits=2)
-        )
-
-
-        #print(X_validation.shape, y_validation.shape)
-        #print(X_validation.index[0], y_validation.index[0])
-        selected = clf.fit(X_validation, y_validation)
-
-    
+    test_params = {
         
-        best_estimator = clf.best_estimator_
-        y_pred = best_estimator.predict(X_test)
-    
+        # Kmeans
+        "n_clusters": [2],
+        "treshold": [0.3],
+        # DBscan
+        "eps": [0.1],
+        "db_treshold": [0.1],
+        "min_samples": [50],
+        # IsolationForest
+        "max_samples": [params["max_samples"]],
+        "max_features": [params["max_features"]],
+        "contamination": [params["contamination"]],
+        # GAN
+        "N_latent": [3],
+        "K": [8],
+        "len_window": [500],
+        # Border Check
+        "UL": [0.5],
+        "LL":  [-0.5],
+        "alg":["IsolationForest"],
+        "train_data": [f"data/train/ads-{i}.csv"],
 
-        comp_metrics = compute_metrics(y_test, y_pred)
-        #print("Metrics ", comp_metrics)
+    }
+
+    #print(test_params)
+
+    estimator = Estimator()
+
+    clf = GridSearchCV(
+        estimator,
+        param_grid=test_params,
+        scoring="precision",
         
+        cv=TimeSeriesSplit(n_splits=2)
+    )
+
+
+    #print(X_validation.shape, y_validation.shape)
+    #print(X_validation.index[0], y_validation.index[0])
+    selected = clf.fit(X_validation, y_validation)
+
+
     
-        
-        transposed_data = zip(*[selected.cv_results_[key] for key in selected.cv_results_])
-        is_empty = (
-            not os.path.exists(f"results_1/DBscan-precision.csv")
-            or os.path.getsize(f"results_1/DBscan-precision.csv") == 0
-        )
+    best_estimator = clf.best_estimator_
+    y_pred = best_estimator.predict(X_test)
 
-        with open(f"results_1/DBscan-precision.csv", "a", newline="") as f:
-            writer = csv.writer(f)
 
-            # Write headers only if the file is empty
-            if is_empty:
-                writer.writerow(selected.cv_results_.keys())
+    comp_metrics = compute_metrics(y_test, y_pred)
+    #print("Metrics ", comp_metrics)
 
-            # Write data rows
-            writer.writerows(transposed_data)
+    with open("results_1/isolation_forest_metrics.txt", "a") as file:
+        # Write content to the file
+        file.write(f"data-{i} {str(best_estimator.get_params())} {str(comp_metrics)}\n")
+
+
+
+    
+    transposed_data = zip(*[selected.cv_results_[key] for key in selected.cv_results_])
+    is_empty = (
+        not os.path.exists(f"results_1/isolation_forest-precision.csv")
+        or os.path.getsize(f"results_1/isolation_forest-precision.csv") == 0
+    )
+
+    with open(f"results_1/isolation_forest-precision.csv", "a", newline="") as f:
+        writer = csv.writer(f)
+
+        # Write headers only if the file is empty
+        if is_empty:
+            writer.writerow(selected.cv_results_.keys())
+
+        # Write data rows
+        writer.writerows(transposed_data)
 
       
 def main():   
-    # Define db_params_params_list dynamically
-    dbscan_params_list = [
-        {"eps": eps, "db_treshold": db_treshold, "min_samples": min_samples}
-        for eps in np.arange(0.1, 0.8, 0.1)
-        for db_treshold in np.arange(0.05, 0.8, 0.1)
-        for min_samples in np.arange(50, 160, 50)
+    iso_params_list = [
+        {"max_samples": max_samples, "max_features": max_features, "contamination": contamination, "i": i}
+        for max_samples in np.arange(2500, 10001, 2500)
+        for max_features in [1]
+        for contamination in np.arange(0.001, 0.02, 0.001)
+        for  i in np.arange(1,10,1)
+
     ]
 
-    batch_size = 4
 
-    for i in range(0, len(dbscan_params_list), batch_size):
-        batch_params = dbscan_params_list[i:i+batch_size]
+
+    batch_size = 15
+
+    for i in range(0, len(iso_params_list), batch_size):
+        batch_params = iso_params_list[i:i+batch_size]
         processes = []
         for params in batch_params:
             p = mp.Process(target=perform_grid_search, args=(params,))
