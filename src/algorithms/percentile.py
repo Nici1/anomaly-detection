@@ -41,7 +41,7 @@ class Percentile(AnomalyDetectionAbstract):
         )
 
         self.filtering = conf["filtering"]
-        self.shift = conf["shift"]
+        self.buff_size = conf["buff_size"]
         self.percentile_range = conf["percentile_range"]
         self.buff = []
 
@@ -96,6 +96,9 @@ class Percentile(AnomalyDetectionAbstract):
             elif self.buff[-1] > percentiles[1]:
                 status = self.ERROR
                 status_code = self.ERROR_CODE
+            else:
+                status = self.OK
+                status_code = self.OK_CODE
 
             # Remenber status for unittests
             self.status = status

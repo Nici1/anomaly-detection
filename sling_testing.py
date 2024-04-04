@@ -192,16 +192,16 @@ def perform_grid_search(params):
     test_params = {
         
         # Kmeans
-        "n_clusters": [2],
-        "treshold": [0.3],
+        "n_clusters": [params["n_clusters"]],
+        "treshold": [params["treshold"]],
         # DBscan
         "eps": [0.1],
         "db_treshold": [0.1],
         "min_samples": [50],
         # IsolationForest
-        "max_samples": [params["max_samples"]],
-        "max_features": [params["max_features"]],
-        "contamination": [params["contamination"]],
+        "max_samples": [500],
+        "max_features": [1],
+        "contamination": [0.01],
         # GAN
         "N_latent": [3],
         "K": [8],
@@ -209,7 +209,7 @@ def perform_grid_search(params):
         # Border Check
         "UL": [0.5],
         "LL":  [-0.5],
-        "alg":["IsolationForest"],
+        "alg":["Kmeans"],
         "train_data": [f"data/train/ads-{i}.csv"],
 
     }
@@ -240,7 +240,7 @@ def perform_grid_search(params):
     comp_metrics = compute_metrics(y_test, y_pred)
     #print("Metrics ", comp_metrics)
 
-    with open("results_1/isolation_forest_metrics.txt", "a") as file:
+    with open("results_1/kmeans_metrics.txt", "a") as file:
         # Write content to the file
         file.write(f"data-{i} {str(best_estimator.get_params())} {str(comp_metrics)}\n")
 
@@ -249,11 +249,11 @@ def perform_grid_search(params):
     
     transposed_data = zip(*[selected.cv_results_[key] for key in selected.cv_results_])
     is_empty = (
-        not os.path.exists(f"results_1/isolation_forest-precision.csv")
-        or os.path.getsize(f"results_1/isolation_forest-precision.csv") == 0
+        not os.path.exists(f"results_1/kmeans-precision.csv")
+        or os.path.getsize(f"results_1/kmeans-precision.csv") == 0
     )
 
-    with open(f"results_1/isolation_forest-precision.csv", "a", newline="") as f:
+    with open(f"results_1/kmeans-precision.csv", "a", newline="") as f:
         writer = csv.writer(f)
 
         # Write headers only if the file is empty
@@ -265,21 +265,20 @@ def perform_grid_search(params):
 
       
 def main():   
-    iso_params_list = [
-        {"max_samples": max_samples, "max_features": max_features, "contamination": contamination, "i": i}
-        for max_samples in np.arange(2500, 10001, 2500)
-        for max_features in [1]
-        for contamination in np.arange(0.001, 0.02, 0.001)
+    kmeans_params_list = [
+        {"n_clusters": n_clusters, "treshold": treshold, "i": i}
+        for n_clusters in np.arange(2, 11, 1)
+        for treshold in np.arange(0.05, 1.05, 0.05)
         for  i in np.arange(1,10,1)
 
     ]
 
 
 
-    batch_size = 15
+    batch_size = 20
 
-    for i in range(0, len(iso_params_list), batch_size):
-        batch_params = iso_params_list[i:i+batch_size]
+    for i in range(0, len(kmeans_params_list), batch_size):
+        batch_params = kmeans_params_list[i:i+batch_size]
         processes = []
         for params in batch_params:
             p = mp.Process(target=perform_grid_search, args=(params,))
@@ -290,7 +289,7 @@ def main():
         for p in processes:
             p.join()
 
-        time.sleep(10)
+        time.sleep(8)
 
 
 

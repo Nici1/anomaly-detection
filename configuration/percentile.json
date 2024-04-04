@@ -1,0 +1,19 @@
+{
+    "file_name":"data/train/ads-1.csv",
+    "anomaly_detection_alg": ["Percentile()"],
+    "anomaly_detection_conf": [{
+
+        "filtering": "None",
+        "train_data":"data/train/ads-1.csv",
+        "input_vector_size": 1,
+
+        "percentile_range": [1, 99],
+        "buff_size":150,
+        "output": ["TerminalOutput()"],
+            "output_conf": [
+                {
+                    
+                }
+            ]
+    }]
+}
