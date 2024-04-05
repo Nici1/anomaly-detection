@@ -66,6 +66,7 @@ class Percentile(AnomalyDetectionAbstract):
 
         # Extract value and timestamp
         value = message_value["ftr_vector"]
+        #print(value)
         # We only consider the first component of the feature vector
         value = value[0]
         timestamp = message_value["timestamp"]
@@ -81,15 +82,15 @@ class Percentile(AnomalyDetectionAbstract):
             status_code = self.UNDEFIEND_CODE
         else:
             value = feature_vector[0]
-
+            
             # add value to buff and shift if buff is full
             self.buff.append(value)
+            #print(len(self.buff), self.buff_size)
             if len(self.buff) > self.buff_size:
                 self.buff.pop(0)
 
             percentiles = np.percentile(self.buff, self.percentile_range)
-
-            # Identify anomalies
+           
             if self.buff[-1] < percentiles[0]:
                 status = self.ERROR  #"Error: measurement above upper limit"
                 status_code = self.ERROR_CODE
@@ -110,6 +111,6 @@ class Percentile(AnomalyDetectionAbstract):
                                                     value=message_value["ftr_vector"],
                                                     timestamp=timestamp)
 
-        return status, status_code
+        return status_code
 
 
