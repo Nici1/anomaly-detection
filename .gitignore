@@ -208,3 +208,7 @@ notebooks/pilots/*
 
 # models
 models/*
+
+
+# results folder for gridsearch
+results_1/*

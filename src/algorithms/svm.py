@@ -182,6 +182,8 @@ class SVM(AnomalyDetectionAbstract):
                 self.train_model(train_dataframe=self.memory_dataframe)
                 self.retrain_counter += 1
 
+        return status_code
+
     def train_model(
         self, train_file: str = None, train_dataframe: DataFrame = None
     ) -> None:
