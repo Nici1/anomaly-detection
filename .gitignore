@@ -194,6 +194,11 @@ log/
 # Directory containing retrain data
 src/data/
 
+# train/validation/split of data
+data/train
+data/validation
+data/test
+
 # retrain data
 data/retrain
 
@@ -210,5 +215,5 @@ notebooks/pilots/*
 models/*
 
 
-# results folder for gridsearch
+# results for gridsearch
 results_1/*
