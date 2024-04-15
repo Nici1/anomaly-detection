@@ -10,6 +10,7 @@ from scipy.spatial import distance
 from ast import literal_eval
 
 sys.path.insert(0, "./src")
+
 from algorithms.anomaly_detection import AnomalyDetectionAbstract
 from output import OutputAbstract, TerminalOutput, FileOutput, KafkaOutput
 from visualization import (

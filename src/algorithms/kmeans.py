@@ -11,6 +11,8 @@ from scipy.spatial import distance
 
 
 sys.path.insert(0, "./src")
+
+
 from algorithms.anomaly_detection import AnomalyDetectionAbstract
 from output import OutputAbstract, TerminalOutput, FileOutput, KafkaOutput
 from visualization import (
@@ -57,6 +59,7 @@ class Kmeans(AnomalyDetectionAbstract):
             configuration_location=configuration_location,
             algorithm_indx=algorithm_indx,
         )
+        print(conf)
 
         self.n_clusters = conf["n_clusters"]
         self.treshold = conf["treshold"]
@@ -115,6 +118,8 @@ class Kmeans(AnomalyDetectionAbstract):
 
         # If the feature vector is multidimensional then we would need to convert the string of the feature array into an actual array, otherwise inputs of
         # dimension are written and sent as non string values
+
+        print(message_value)
         if self.input_vector_size > 1:
             message_value["ftr_vector"] = literal_eval(message_value["ftr_vector"][0])
         super().message_insert(message_value)

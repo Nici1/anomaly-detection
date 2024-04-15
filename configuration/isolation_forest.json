@@ -1,12 +1,12 @@
 {
     "anomaly_detection_alg": ["IsolationForest()"],
    
-    "file_name": "data/cleaned/data1.csv",
+    "file_name": "data/train2/ads-1.csv",
 
     "anomaly_detection_conf": [
         {
             "filtering": "None",
-            "train_data": "data/cleaned/data1.csv",
+            "train_data": "data/train2/ads-1.csv",
             "input_vector_size": 1,
             "max_samples": 100,
             "contamination":0.05,
