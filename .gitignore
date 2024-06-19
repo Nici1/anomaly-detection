@@ -209,8 +209,7 @@ data/JEMS
 # data batches
 data/pilot/*
 
-# notebooks
-notebooks/pilots/*
+
 
 # models
 models/*
