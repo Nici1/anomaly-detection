@@ -9,7 +9,6 @@ import json
 import numpy as np
 from scipy.spatial import distance
 
-
 sys.path.insert(0, "./src")
 
 
@@ -27,8 +26,7 @@ from normalization import NormalizationAbstract, LastNAverage, PeriodicLastNAver
 class Kmeans(AnomalyDetectionAbstract):
     name: str = "Kmeans"
 
-    # methode specific
-
+    # method specific
     n_cluster: int
     treshold: float
     cluster_centers = []
@@ -36,7 +34,7 @@ class Kmeans(AnomalyDetectionAbstract):
     # retrain information
     samples_from_retrain: int
     retrain_interval: int  # An integer representing the number of samples recieved by the anomaly detection component that trigger model retraining.
-    samples_for_retrain: int  #  An integer representing the number of most recent samples that are used to retrain the model.
+    samples_for_retrain: int  #  An integer representing the number of most recent samples that are used to retrain the model (if not specified it uses all samples)
     retrain_file: (
         str  # Path and file name of the file in which retrain data will be stored
     )
@@ -59,7 +57,6 @@ class Kmeans(AnomalyDetectionAbstract):
             configuration_location=configuration_location,
             algorithm_indx=algorithm_indx,
         )
-        print(conf)
 
         self.n_clusters = conf["n_clusters"]
         self.treshold = conf["treshold"]
@@ -73,6 +70,7 @@ class Kmeans(AnomalyDetectionAbstract):
             if "samples_for_retrain" in conf:
                 self.samples_for_retrain = conf["samples_for_retrain"]
             else:
+                # In this case, all samples will be used (memory overflow can occur)
                 self.samples_for_retrain = None
 
             # Retrain memory initialization
@@ -119,7 +117,7 @@ class Kmeans(AnomalyDetectionAbstract):
         # If the feature vector is multidimensional then we would need to convert the string of the feature array into an actual array, otherwise inputs of
         # dimension are written and sent as non string values
 
-        print(message_value)
+
         if self.input_vector_size > 1:
             message_value["ftr_vector"] = literal_eval(message_value["ftr_vector"][0])
         super().message_insert(message_value)
@@ -147,6 +145,7 @@ class Kmeans(AnomalyDetectionAbstract):
 
         # Feature construction
         feature_vector = super().feature_construction(value=value, timestamp=timestamp)
+        print(feature_vector)
 
         if not feature_vector or not self.trained:
             # If this happens the memory does not contain enough samples to
@@ -212,22 +211,25 @@ class Kmeans(AnomalyDetectionAbstract):
         if train_dataframe is not None:
             # This is in case of retrain
             df = train_dataframe
+            print("Data frame", df)
 
             # Save train_dataframe to file and change the config file so the
             # next time the model will train from that file
             path = self.retrain_file
             df.to_csv(path, index=False)
-
+            print("Config location ", self.configuration_location)
             with open("configuration/" + self.configuration_location) as conf:
                 whole_conf = json.load(conf)
                 if (
                     whole_conf["anomaly_detection_alg"][self.algorithm_indx]
                     == "Combination()"
                 ):
+                    print("in if")
                     whole_conf["anomaly_detection_conf"][self.algorithm_indx][
                         "anomaly_algorithms_configurations"
                     ][self.index_in_combination]["train_data"] = path
                 else:
+                    print("index ", self.algorithm_indx)
                     whole_conf["anomaly_detection_conf"][self.algorithm_indx][
                         "train_data"
                     ] = path

@@ -275,8 +275,7 @@ class IsolationForest(AnomalyDetectionAbstract):
         # feature-construction memory
         features = self.training_feature_construction(data=data, timestamps=timestamps)
   
-        print(type(features))
-        print(features[:5])
+     
         # Fit IsolationForest model to data (if there was enoug samples to
         # construct at leat one feature)
         if len(features) > 0:

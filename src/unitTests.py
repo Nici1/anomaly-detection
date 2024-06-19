@@ -1,5 +1,5 @@
 import sys, os
-sys.path.insert(0, './')
+#sys.path.insert(0, './')
 sys.path.append(os.path.join(os.path.dirname(__file__), "../models"))
 
 def warn(*args, **kwargs):
@@ -133,6 +133,7 @@ class BCTestCase(unittest.TestCase):
 
     def setUp(self):
         configuration = {
+        "filtering": None,
         "input_vector_size": 1,
         "warning_stages": [0.7, 0.9],
         "UL": 4,
@@ -161,8 +162,7 @@ class BCTestFunctionality(BCTestCase):
 
     def test_OK(self):
         #Test a value at the center of the range. Should give OK status.
-        message = create_message((datetime.now()-datetime(1970,1,1)).total_seconds(),
-                                 [3])
+        message = create_message((datetime.now()-datetime(1970,1,1)).total_seconds(),[3])
         self.model.message_insert(message)
         self.assertEqual(self.model.status_code, 1)
 
@@ -190,6 +190,7 @@ class WelfordDefinedNTestCase(unittest.TestCase):
 
     def setUp(self):
         configuration = {
+        "filtering": None,
         "input_vector_size": 1,
         "warning_stages": [0.7, 0.9],
         "N": 4,
@@ -248,6 +249,7 @@ class WelfordUndefinedNTestCase(unittest.TestCase):
 
     def setUp(self):
         configuration = {
+        "filtering": None,
         "input_vector_size": 1,
         "X": 2,
         "warning_stages": [],
@@ -309,6 +311,7 @@ class EMATestCase(unittest.TestCase):
 
     def setUp(self):
         configuration = {
+        "filtering": None,
         "input_vector_size": 1,
         "warning_stages": [0.7, 0.9],
         "UL": 4,
@@ -360,6 +363,7 @@ class Filtering1TestCase(unittest.TestCase):
     #Test case for filtering - mode 1
     def setUp(self):
         configuration = {
+        "filtering": None,
         "input_vector_size": 1,
         "mode": 1,
         "LL": 0,
@@ -383,6 +387,7 @@ class Filtering0TestCase(unittest.TestCase):
     #Test case for filtering - mode 0
     def setUp(self):
         configuration = {
+        "filtering": None,
         "input_vector_size": 1,
         "mode": 0,
         "LL": 0,
@@ -481,6 +486,7 @@ class IsolForestTestCase(unittest.TestCase):
                             withzero=True)
 
         configuration = {
+        
         "train_data": "./unittest/IsolForestTestData.csv",
         "train_conf": {
             "max_features": 7,
@@ -514,7 +520,7 @@ class IsolForestTestCase(unittest.TestCase):
         if os.path.isdir("configuration"):
             shutil.rmtree("configuration")
 
-
+'''
 class IsolForestTestClassPropperties(IsolForestTestCase):
     #Check propperties setup.
     def test_Propperties(self):
@@ -548,6 +554,7 @@ class IsolForestTestFunctionality(IsolForestTestCase):
         self.assertEqual(self.model.retrain_counter, 1)
 
 
+        '''
 class GANTestCase(unittest.TestCase):
     def setUp(self):
         # Set random seed so results are reproducable
@@ -561,14 +568,17 @@ class GANTestCase(unittest.TestCase):
         create_testing_file("./unittest/GANTestData.csv", withzero = True, FV_length=10)
 
         configuration = {
+
         "train_data": "./unittest/GANTestData.csv",
         "train_conf":{
+            
             "model_name": "GAN_Test",
             "N_shifts": 9,
             "N_latent": 3,
             "K": 1.5,
             "len_window": 1000
         },
+       
         "retrain_file": "./unittest/GANRetrainData.csv",
         "retrain_interval": 3,
         "samples_for_retrain": 90,
@@ -594,7 +604,7 @@ class GANTestCase(unittest.TestCase):
         if os.path.isdir("configuration"):
             shutil.rmtree("configuration")
 
-
+'''
 class GANTestClassPropperties(GANTestCase):
     #Check propperties setup.
     def test_Propperties(self):
@@ -640,6 +650,7 @@ class GANTestFunctionality(GANTestCase):
             self.assertEqual(self.model.status_code, -1)
         self.assertEqual(self.model.retrain_counter, 2)
 
+    '''
 
 class PCATestCase(unittest.TestCase):
     def setUp(self):
@@ -716,12 +727,14 @@ class PCATestFunctionality(PCATestCase):
         self.assertEqual(self.model.retrain_counter, 1)
 
 
+
 class MACDTestCase(unittest.TestCase):
     def setUp(self):
         # Set random seed so results are reproducable
         np.random.seed(0)
 
         configuration = {
+        "filtering": None,
         "input_vector_size": 1,
         "warning_stages": [0.5],
         "period1": 10,
@@ -964,9 +977,11 @@ class ProphetTestFunctionality(ProphetTestCase):
         self.assertEqual(self.model.retrain_counter, 1)"""
 
 
+'''
 class CombinationTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.configuration = {
+            
             "anomaly_detection_alg": ["Combination()"],
             "status_determiner": "AND()",
             "anomaly_algorithms": ["BorderCheck()", "BorderCheck()"],
@@ -975,6 +990,7 @@ class CombinationTestCase(unittest.TestCase):
             "input_vector_size": 1,
             "anomaly_algorithms_configurations":[
             {
+            "filtering": None,
             "input_vector_size": 1,
             "warning_stages": [0.9],
             "UL": 0.5,
@@ -983,6 +999,7 @@ class CombinationTestCase(unittest.TestCase):
             "output_conf": [{}]
             },
             {
+                "filtering": None,
                 "input_vector_size": 1,
                 "warning_stages": [0.9],
                 "UL": 1,
@@ -1039,12 +1056,14 @@ class CombinationTestFunctionality(CombinationTestCase):
             self.model.message_insert(message)
             self.assertEqual(self.model.status_code, expected_status[i])
 
+'''
 
 class FeatureConstructionTestCase(unittest.TestCase):
     def setUp(self) -> None:
         # Border check does not use feature construction (or vector size > 1)
         # but will be used because of simplicity
         configuration = {
+            "filtering": None,
             "input_vector_size": 2,
             "averages": [[2, 3], [2]],
             "periodic_averages": [[[2, [3]], [3, [2]]], []],

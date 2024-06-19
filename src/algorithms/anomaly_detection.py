@@ -370,7 +370,6 @@ class AnomalyDetectionAbstract(ABC):
 
     def average_construction(self) -> None:
         averages = []
-
         # Loop through all features
         for feature_index in range(len(self.averages)):
             # Loop through all horizons we want the average of
@@ -391,8 +390,8 @@ class AnomalyDetectionAbstract(ABC):
 
     def periodic_average_construction(self) -> None:
         # construct periodic averages
-
         periodic_averages = []
+    
         # Loop through features
         for feature_indx in range(len(self.periodic_averages)):
             # Loop through indexes for different features
@@ -410,6 +409,7 @@ class AnomalyDetectionAbstract(ABC):
                     # Loop through samples (in opposite direction) and if they
                     # are of right period add them to the list
                     for i in range(self.memory_size):
+                        
                         if len(periodic_list) == average:
                             # Enough samples
                             break
@@ -422,7 +422,7 @@ class AnomalyDetectionAbstract(ABC):
 
                     # print("periodic list:")
                     # print(periodic_list)
-
+                    
                     # Append average of the list to features
                     avg = mean(periodic_list)
                     periodic_averages.append(avg)

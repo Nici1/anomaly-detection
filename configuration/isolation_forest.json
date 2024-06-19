@@ -1,29 +1,21 @@
 {
     "anomaly_detection_alg": ["IsolationForest()"],
    
-    "file_name": "data/train2/ads-1.csv",
+    "file_name": "data/ads-1.csv",
 
     "anomaly_detection_conf": [
         {
             "filtering": "None",
-            "train_data": "data/train2/ads-1.csv",
+            "train_data": "data/ads-1.csv",
             "input_vector_size": 1,
+            "periodic_averages":[[[2,[1, 2, 3]]]],
             "max_samples": 100,
             "contamination":0.05,
             "max_features":1,
             "model_name":"sensor-cleaning-data1-test",
         
             "output": ["TerminalOutput()"],
-            "output_conf": [{}],
-            "visualization": "StatusPointsVisualization()",
-            "visualization_conf": {
-                "num_of_bins": 60,
-                "range": [9, 20],
-                "num_of_points": 50,
-                "num_of_lines": 1,
-                "linestyles": ["wo"],
-                "demo_pause": 1.0
-            }
+            "output_conf": [{}]
         }
     ]
 }

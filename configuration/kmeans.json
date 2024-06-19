@@ -1,14 +1,17 @@
 {
     "anomaly_detection_alg": ["Kmeans()"],
    
-    "file_name": "data/ads-1.csv",
+    "file_name": "data/test/ads-1.csv",
 
     "anomaly_detection_conf": [
         {
             "filtering": "None",
-            "train_data": "data/ads-1.csv",
+            "retrain_file":"data/retrain/test.csv",
+            "train_data": "data/test/ads-1.csv",
+            "retrain_interval":100,
+            "samples_for_retrain":2000,
             "input_vector_size": 1,
-            "warning_stages": [0.7, 0.9],
+            "shifts":[[1,2,3]],
             
         
             "n_clusters":4,
